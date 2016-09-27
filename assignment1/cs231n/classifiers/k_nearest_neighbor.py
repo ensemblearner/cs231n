@@ -1,5 +1,5 @@
 import numpy as np
-
+from collections import Counter
 class KNearestNeighbor(object):
   """ a kNN classifier with L2 distance """
 
@@ -129,9 +129,9 @@ class KNearestNeighbor(object):
     #       and two broadcast sums.                                         #
     #########################################################################
     M = np.dot(X, self.X_train.T)
-    te = np.square(X).sum(axis = 1)
-    tr = np.square(self.X_train).sum(axis = 1)
-    dists = np.sqrt(-2*M+tr+np.matrix(te).T)
+    test_square = np.square(X).sum(axis = 1)
+    train_square = np.square(self.X_train).sum(axis = 1)
+    dists = np.sqrt(-2*M+train_square+np.matrix(test_square).T)
     #########################################################################
     #                         END OF YOUR CODE                              #
     #########################################################################
@@ -152,6 +152,7 @@ class KNearestNeighbor(object):
     """
     num_test = dists.shape[0]
     y_pred = np.zeros(num_test)
+    
     for i in xrange(num_test):
       # A list of length k storing the labels of the k nearest neighbors to
       # the ith test point.
@@ -163,11 +164,9 @@ class KNearestNeighbor(object):
       # neighbors. Store these labels in closest_y.                           #
       # Hint: Look up the function numpy.argsort.                             #
       #########################################################################
-      dist = dists[i]
-      #print dist
-      indices =  dist.argsort()[:k]
-      #print indices, np.argmax(dist)
-      closest_y =  self.y_train[indices]  
+   
+      closest_y =  self.y_train[np.argsort(dists[i,:])].flatten()[:k]
+      
       #########################################################################
       # TODO:                                                                 #
       # Now that you have found the labels of the k nearest neighbors, you    #
@@ -175,11 +174,10 @@ class KNearestNeighbor(object):
       # Store this label in y_pred[i]. Break ties by choosing the smaller     #
       # label.                                                                #
       #########################################################################
-      counts = np.bincount(closest_y)
-      #print "counts ", counts
-      y_pred[i] = np.argmax(counts)
-      #print y_pred[i]
-      #break
+
+      c = Counter(closest_y)
+      y_pred[i] = c.most_common(1)[0][0]
+  
       #########################################################################
       #                           END OF YOUR CODE                            # 
       #########################################################################
