@@ -29,7 +29,14 @@ def softmax_loss_naive(W, X, y, reg):
   # here, it is easy to run into numeric instability. Don't forget the        #
   # regularization!                                                           #
   #############################################################################
-  pass
+
+  for x, this_y in zip(X, y):
+    scores = x.dot(W)
+    exp_scores = np.exp(scores) 
+    
+    normed_exp_scores = exp_scores[this_y]/np.sum(exp_scores)
+    log_probs = -np.log(normed_exp_scores)
+    loss += log_probs
   #############################################################################
   #                          END OF YOUR CODE                                 #
   #############################################################################
