@@ -2,54 +2,53 @@ import numpy as np
 from random import shuffle
 
 
-def L_i(x, y, W):
-  scores = W.dot(x)
-  correct_class_score = scores[y]
-  num_classes = W.shape[0]
-  loss_i = 0.0
-  for j in xrange(num_classes):
-    if j == y:
-      continue
-    margin = scores[j] - correct_class_score + 1
-    loss_i += max(0, scores[j] - correct_class_score + delta)
-  return loss_i
-
 def svm_loss_naive(W, X, y, reg):
   """
-  Structured SVM loss function, naive implementation (with loops).
-
-  Inputs have dimension D, there are C classes, and we operate on minibatches
-  of N examples.
-
+  Structured SVM loss function, naive implementation (with loops)
   Inputs:
-  - W: A numpy array of shape (D, C) containing weights.
-  - X: A numpy array of shape (N, D) containing a minibatch of data.
-  - y: A numpy array of shape (N,) containing training labels; y[i] = c means
-    that X[i] has label c, where 0 <= c < C.
+  - W: C x D array of weights
+  - X: D x N array of data. Data are D-dimensional columns
+  - y: 1-dimensional array of length N with labels 0...K-1, for K classes
   - reg: (float) regularization strength
-
-  Returns a tuple of:
+  Returns:
+  a tuple of:
   - loss as single float
   - gradient with respect to weights W; an array of same shape as W
   """
   dW = np.zeros(W.shape) # initialize the gradient as zero
 
   # compute the loss and the gradient
-  num_classes = W.shape[1]
-  num_train = X.shape[0]
-  h = 0.0001
+  num_classes = W.shape[0]
+  num_train = X.shape[1]
+  loss = 0.0
   for i in xrange(num_train):
-    scores = X[i].dot(W)
+    scores = X[i].dot(W)#W.dot(X[:, i])
     correct_class_score = scores[y[i]]
-    loss += L_i(X[i], y[i], W)
-    
+    count = 0
+    index = 0
+    for j in xrange(num_classes):
+      if j == y[i]:
+        index = j
+        continue
+      print j, scores
+      margin = scores[j] - correct_class_score + 1 # note delta = 1
+      if margin > 0:
+        count += 1
+        dW[:, j] += X[i, :]
+        loss += margin
+      else:
+        dW[:, j] += np.array([0] * X.shape[1])
+    dW[index, :] += - count * X[i, :] 
 
   # Right now the loss is a sum over all training examples, but we want it
   # to be an average instead so we divide by num_train.
   loss /= num_train
+  dW /= num_train
 
-  # Add regularization to the lossself.
+  # Add regularization to the loss.
   loss += 0.5 * reg * np.sum(W * W)
+  dW += reg * W
+
 
   #############################################################################
   # TODO:                                                                     #
@@ -59,8 +58,6 @@ def svm_loss_naive(W, X, y, reg):
   # loss is being computed. As a result you may need to modify some of the    #
   # code above to compute the gradient.                                       #
   #############################################################################
-
-
 
 
   return loss, dW
